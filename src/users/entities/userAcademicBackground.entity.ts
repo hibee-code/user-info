@@ -9,7 +9,7 @@ export class UserAcademicBackground {
   @Column({ type: 'jsonb' })
   schools: string[];
 
-  @ManyToOne(() => UserInfo, (user) => user.academic, {
+  @ManyToOne(() => UserInfo, (user) => user.academicBackground, {
     onDelete: 'CASCADE',
   })
   user: UserInfo;

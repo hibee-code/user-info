@@ -28,9 +28,9 @@ export class UsersService {
         const savedAddress = manager.create(UserAddress, address);
         await manager.save(savedAddress);
 
-        // Save UserAcademics
+        // Save UserAcademics, map to an array of strings if necessary
         const savedAcademics = manager.create(UserAcademicBackground, {
-          schools: academicBackground,
+          schools: academicBackground.map((ab) => ab.schools),
         });
         await manager.save(savedAcademics);
 
@@ -39,7 +39,7 @@ export class UsersService {
           ...userInfo,
           contact: savedContact,
           address: savedAddress,
-          academics: savedAcademics,
+          academicBackground: [savedAcademics],
         });
         return await manager.save(newUser);
       });
@@ -51,58 +51,114 @@ export class UsersService {
 
   async getAllUsers(): Promise<UserInfo[]> {
     return this.dbManager.find(UserInfo, {
-      relations: ['contact', 'address', 'academic'],
+      relations: ['contact', 'address', 'academicBackground'],
     });
   }
 
   async getUserById(id: number): Promise<UserInfo> {
     return this.dbManager.findOne(UserInfo, {
       where: { id },
-      relations: ['contact', 'address', 'academic'],
+      relations: ['contact', 'address', 'academicBackground'],
     });
   }
 
   async updateUser(
     id: number,
     updateUserDto: UpdateUserDto,
-  ): Promise<UserInfo> {
+  ): Promise<Record<string, any>> {
     return await this.dbManager.transaction(async (manager) => {
-      const { contact, address, academicBackground, ...userInfo } =
-        updateUserDto;
+      const {
+        contact,
+        address,
+        academicBackground = [],
+        ...userInfo
+      } = updateUserDto;
 
-      // Find existing user
+      // Find existing user with relationships
       const user = await manager.findOne(UserInfo, {
         where: { id },
-        relations: ['contact', 'address', 'academic'],
+        relations: ['contact', 'address', 'academicBackground'],
       });
       if (!user) throw new Error('User not found');
 
-      // Update UserContact
-      await manager.update(UserContact, user.contact.id, contact);
+      const updatedData: Record<string, any> = {}; // Track updated data for response
 
-      // Update UserAddress
-      await manager.update(UserAddress, user.address.id, address);
-
-      // Update UserAcademics
-      if (Array.isArray(user.academic)) {
-        await Promise.all(
-          user.academic.map((academicRecord, index) =>
-            manager.update(
-              UserAcademicBackground,
-              academicRecord.id,
-              academicBackground[index],
-            ),
-          ),
-        );
+      // Update UserInfo fields
+      if (Object.keys(userInfo).length > 0) {
+        await manager.update(UserInfo, id, userInfo);
+        updatedData.userInfo = userInfo;
       }
 
-      // Update UserInfo
-      await manager.update(UserInfo, id, userInfo);
+      // Update UserContact
+      if (contact) {
+        await manager.update(UserContact, user.contact.id, contact);
+        updatedData.contact = contact;
+      }
 
-      return await manager.findOne(UserInfo, {
-        where: { id },
-        relations: ['contact', 'address', 'academic'],
-      });
+      // Update UserAddress
+      if (address) {
+        await manager.update(UserAddress, user.address.id, address);
+        updatedData.address = address;
+      }
+
+      // Handle academicBackground updates
+      if (Array.isArray(academicBackground)) {
+        updatedData.academicBackground = [];
+
+        // Track IDs to determine records to delete
+        const updatedIds = academicBackground
+          .filter((record) => record.id)
+          .map((record) => record.id);
+
+        // Delete records that are not in the update payload
+        const existingIds = user.academicBackground.map((record) => record.id);
+        const idsToDelete = existingIds.filter(
+          (id) => !updatedIds.includes(id),
+        );
+
+        if (idsToDelete.length > 0) {
+          await manager.delete(UserAcademicBackground, idsToDelete);
+        }
+
+        // Update or insert records
+        for (const record of academicBackground) {
+          if (record.id) {
+            const existingAcademic = await manager.findOne(
+              UserAcademicBackground,
+              {
+                where: { id: record.id },
+              },
+            );
+            if (existingAcademic) {
+              await manager.update(UserAcademicBackground, record.id, {
+                ...record,
+                schools: Array.isArray(record.schools)
+                  ? record.schools
+                  : [record.schools],
+              });
+              updatedData.academicBackground.push({
+                ...existingAcademic,
+                ...record,
+              });
+            }
+          } else {
+            const newAcademic = manager.create(UserAcademicBackground, {
+              ...record,
+              schools: Array.isArray(record.schools)
+                ? record.schools
+                : [record.schools],
+              user,
+            });
+            const savedAcademic = await manager.save(
+              UserAcademicBackground,
+              newAcademic,
+            );
+            updatedData.academicBackground.push(savedAcademic);
+          }
+        }
+      }
+
+      return updatedData;
     });
   }
 
@@ -110,24 +166,12 @@ export class UsersService {
     return await this.dbManager.transaction(async (manager) => {
       const user = await manager.findOne(UserInfo, {
         where: { id },
-        relations: ['contact', 'address', 'academic'],
+        relations: ['contact', 'address', 'academicBackground'],
       });
+
       if (!user) throw new Error('User not found');
 
-      // Delete associations
-      await manager.delete(UserContact, user.contact.id);
-      await manager.delete(UserAddress, user.address.id);
-
-      // Handle the academic background which is an array
-      if (Array.isArray(user.academic)) {
-        await Promise.all(
-          user.academic.map((academicRecord) =>
-            manager.delete(UserAcademicBackground, academicRecord.id),
-          ),
-        );
-      }
-
-      // Delete UserInfo
+      // Delete the UserInfo entity; cascading will handle related entities
       await manager.delete(UserInfo, id);
     });
   }

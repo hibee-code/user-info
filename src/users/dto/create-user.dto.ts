@@ -7,6 +7,7 @@ import {
   IsEmail,
   IsUrl,
   ValidateNested,
+  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types/dist';
@@ -50,6 +51,23 @@ class AddressDto {
   @IsNotEmpty()
   zipCode: string;
 }
+class AcademicBackgroundDto {
+  @IsOptional()
+  @IsInt()
+  id?: number;
+
+  @IsNotEmpty()
+  @IsString()
+  schools: string;
+
+  @IsNotEmpty()
+  @IsString()
+  degree: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  yearGraduated: number;
+}
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -85,9 +103,9 @@ export class CreateUserDto {
   address: AddressDto;
 
   @IsArray()
-  @IsNotEmpty({ each: true })
-  @IsString({ each: true })
-  academicBackground: [];
+  @ValidateNested({ each: true })
+  @Type(() => AcademicBackgroundDto)
+  academicBackground: AcademicBackgroundDto[];
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

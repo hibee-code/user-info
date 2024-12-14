@@ -45,5 +45,5 @@ export class UserInfo {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  academic: UserAcademicBackground[];
+  academicBackground: UserAcademicBackground[];
 }
