@@ -1,25 +1,93 @@
-import { PartialType } from '@nestjs/mapped-types';
+import {
+  IsArray,
+  IsISO8601,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { PartialType } from '@nestjs/mapped-types/dist';
+
+class ContactDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
+  @IsOptional()
+  @IsString()
+  fax?: string;
+
+  @IsOptional()
+  @IsUrl()
+  linkedInUrl?: string;
+}
+
+class AddressDto {
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  state: string;
+
+  @IsString()
+  @IsNotEmpty()
+  country: string;
+
+  @IsString()
+  @IsNotEmpty()
+  zipCode: string;
+}
 
 export class CreateUserDto {
+  @IsNotEmpty()
+  @IsUrl()
   profilePhoto: string;
+
+  @IsNotEmpty()
+  @IsString()
   firstName: string;
+
+  @IsNotEmpty()
+  @IsString()
   lastName: string;
+
+  @IsNotEmpty()
+  @IsISO8601()
   dob: Date;
+
+  @IsNotEmpty()
+  @IsString()
   occupation: string;
+
+  @IsNotEmpty()
+  @IsString()
   gender: string;
 
-  email: string;
-  phoneNumber: string;
-  fax?: string;
-  linkedInUrl?: string;
+  @ValidateNested()
+  @Type(() => ContactDto)
+  contact: ContactDto;
 
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  zipCode: string;
+  @ValidateNested()
+  @Type(() => AddressDto)
+  address: AddressDto;
 
-  academicBackground: string[]; // List of past schools
+  @IsArray()
+  @IsNotEmpty({ each: true })
+  @IsString({ each: true })
+  academicBackground: [];
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

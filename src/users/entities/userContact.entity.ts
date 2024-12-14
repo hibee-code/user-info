@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
-import { UserInfo } from './user-info.entity';
+import { UserInfo } from './userInfo.entity';
 
 @Entity()
 export class UserContact {
@@ -10,7 +10,7 @@ export class UserContact {
   email: string;
 
   @Column({ type: 'varchar', length: 20 })
-  phoneNumber: string;
+  phone: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   fax?: string;
@@ -18,7 +18,6 @@ export class UserContact {
   @Column({ type: 'varchar', length: 255, nullable: true })
   linkedInUrl?: string;
 
-  // Optionally, you can add a foreign key to the UserInfo table if it's a one-to-one or one-to-many relationship
-  @OneToOne(() => UserInfo, (userInfo) => userInfo.contact)
+  @OneToOne(() => UserInfo, (user) => user.contact, { onDelete: 'CASCADE' })
   user: UserInfo;
 }

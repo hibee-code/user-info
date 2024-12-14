@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { UserInfo } from './user-info.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import { UserInfo } from './userInfo.entity';
 
 @Entity()
 export class UserAddress {
@@ -21,7 +21,6 @@ export class UserAddress {
   @Column({ type: 'varchar' })
   zipCode: string;
 
-  //   Optionally, you can add a foreign key to the UserInfo table if it's a one-to-one or one-to-many relationship
-  @ManyToOne(() => UserInfo, (userInfo) => userInfo.addresses)
+  @OneToOne(() => UserInfo, (user) => user.address, { onDelete: 'CASCADE' })
   user: UserInfo;
 }
