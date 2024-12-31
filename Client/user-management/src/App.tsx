@@ -1,21 +1,30 @@
 import React from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import UserList from './pages/UserList';
 import MultiStepForm from './components/multiStepsForm';
-
+import UserForm from './pages/UserForm';
 
 const App: React.FC = () => {
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold text-center mb-6">User Management System</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <MultiStepForm />
-        </div>
-        <div>
-          <UserList />
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-6">
+          <Routes>
+            <Route path="/" element={<UserList />} />
+            <Route path="/add-user" element={<UserForm />} />
+            <Route path="/edit-user/:id" element={<UserForm />} />
+            <Route
+              path="/multi-step-form"
+              element={
+                <div className="flex items-center justify-center h-full">
+                  <MultiStepForm />
+                </div>
+              }
+            />
+          </Routes>
         </div>
       </div>
-    </div>
+    </BrowserRouter>
   );
 };
 

@@ -1,14 +1,11 @@
-// features/formWizardSlice.ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 interface FormWizardState {
   step: number;
-  formData: Record<string, any>;
 }
 
 const initialState: FormWizardState = {
   step: 1,
-  formData: {},
 };
 
 const formWizardSlice = createSlice({
@@ -16,16 +13,13 @@ const formWizardSlice = createSlice({
   initialState,
   reducers: {
     nextStep: (state) => {
-      state.step += 1;
+      if (state.step < 4) state.step += 1; // Boundary check
     },
     prevStep: (state) => {
-      state.step -= 1;
-    },
-    saveFormData: (state, action: PayloadAction<Record<string, any>>) => {
-      state.formData = { ...state.formData, ...action.payload };
+      if (state.step > 1) state.step -= 1; // Boundary check
     },
   },
 });
 
-export const { nextStep, prevStep, saveFormData } = formWizardSlice.actions;
+export const { nextStep, prevStep } = formWizardSlice.actions;
 export default formWizardSlice.reducer;

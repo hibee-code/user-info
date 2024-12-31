@@ -39,7 +39,7 @@ const MultiStepForm: React.FC = () => {
   const onSubmit = (data: any) => {
     console.log('Final Form Data:', data);
     // Make API call to backend
-    fetch('/api/users', {
+    fetch('http://localhost:3000/users/create-user', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

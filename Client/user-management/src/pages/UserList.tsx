@@ -1,49 +1,48 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { deleteUser, fetchUsers } from '../features/userSlice';
-import { AppDispatch, RootState } from '../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../redux/store';
+import { Link } from 'react-router-dom';
+import { deleteUser, fetchUsers } from '../redux/usersSlice';
 
 const UserList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { users, status } = useSelector((state: RootState) => state.user);
+  const { users, loading, error } = useSelector((state: RootState) => state.users);
 
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  const handleDelete = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      dispatch(deleteUser(id));
-    }
-  };
-
-  if (status === 'loading') return <p>Loading...</p>;
-  if (status === 'failed') return <p>Failed to load users.</p>;
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">User Management</h2>
-      <table className="table-auto w-full border-collapse border border-gray-300">
+    <div className="bg-white shadow-md rounded p-6">
+      <h2 className="text-xl font-bold mb-4">User List</h2>
+      <table className="w-full border-collapse border border-gray-300">
         <thead>
-          <tr>
-            <th className="border px-4 py-2">First Name</th>
-            <th className="border px-4 py-2">Last Name</th>
-            <th className="border px-4 py-2">Email</th>
-            <th className="border px-4 py-2">Phone</th>
-            <th className="border px-4 py-2">Actions</th>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 px-4 py-2">ID</th>
+            <th className="border border-gray-300 px-4 py-2">Name</th>
+            <th className="border border-gray-300 px-4 py-2">Actions</th>
           </tr>
         </thead>
         <tbody>
           {users.map((user) => (
-            <tr key={user.id}>
-              <td className="border px-4 py-2">{user.firstName}</td>
-              <td className="border px-4 py-2">{user.lastName}</td>
-              <td className="border px-4 py-2">{user.email}</td>
-              <td className="border px-4 py-2">{user.phone}</td>
-              <td className="border px-4 py-2">
+            <tr key={user.id} className="text-center">
+              <td className="border border-gray-300 px-4 py-2">{user.id}</td>
+              <td className="border border-gray-300 px-4 py-2">
+                {user.firstName} {user.lastName}
+              </td>
+              <td className="border border-gray-300 px-4 py-2 space-x-2">
+                <Link
+                  to={`/edit-user/${user.id}`}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Edit
+                </Link>
                 <button
-                  className="bg-red-500 text-white px-2 py-1 rounded"
-                  onClick={() => handleDelete(user.id)}
+                  onClick={() => dispatch(deleteUser(user.id))}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
                 >
                   Delete
                 </button>

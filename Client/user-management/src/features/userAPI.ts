@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { User } from '../types/user';
 
-// Define your backend URL
 const BASE_URL = 'http://localhost:3000';
 
 export const fetchUsers = async (): Promise<User[]> => {

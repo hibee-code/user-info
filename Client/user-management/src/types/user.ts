@@ -27,10 +27,12 @@ export interface UserInfo {
   }
   
   export interface User {
-    id?: string;
+    id?: number;
     info: UserInfo;
     contact: UserContact;
     address: UserAddress;
     academics: UserAcademic;
   }
+
+  
   
